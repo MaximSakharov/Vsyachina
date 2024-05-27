@@ -1,0 +1,46 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+void pratt_sequence(int n) {
+   int* sequence = (int*)malloc(n * sizeof(int));
+   if (sequence == NULL) {
+      printf("Memory allocation failed\n");
+      return;
+   }
+
+   sequence[0] = 1;
+   int idx_2 = 0, idx_3 = 0;
+   int next_2 = 2 * sequence[idx_2];
+   int next_3 = 3 * sequence[idx_3];
+
+   for (int i = 1; i < n; i++) {
+      int next = next_2 < next_3 ? next_2 : next_3;
+      sequence[i] = next;
+
+      if (next == next_2) {
+         idx_2++;
+         next_2 = 2 * sequence[idx_2];
+      }
+
+      if (next == next_3) {
+         idx_3++;
+         next_3 = 3 * sequence[idx_3];
+      }
+   }
+
+   printf("Pratt sequence of length %d:\n", n);
+   for (int i = 0; i < n; i++) {
+      printf("%d ", sequence[i]);
+   }
+   printf("\n");
+
+   free(sequence); 
+}
+
+int main() {
+   int length;
+   printf("Enter the length of Pratt sequence: ");
+   scanf_s("%d", &length);
+   pratt_sequence(length);
+   return 0;
+}
