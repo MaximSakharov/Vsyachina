@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_LINES 6
+#define MAX_LINE_LENGTH 256
+
+// Функция для вычисления взаимного индекса совпадения
+int mutual_index(const char* line1, const char* line2) {
+   int index = 0;
+   while (*line1 && *line2) {
+      if (*line1 == *line2) {
+         index++;
+      }
+      line1++;
+      line2++;
+   }
+   return index;
+}
+
+int main() {
+   FILE* file;
+   char* filename = "input.txt";
+   char lines[MAX_LINES][MAX_LINE_LENGTH];
+   int i, j;
+   int min_index = MAX_LINE_LENGTH;
+   int* min_lines;
+   int num_min_lines = 0;
+   int max_possible_pairs = (MAX_LINES * (MAX_LINES - 1)) / 2;
+
+   // Выделяем память для min_lines динамически
+   min_lines = (int*)malloc(max_possible_pairs * 2 * sizeof(int));
+   if (min_lines == NULL) {
+      perror("Не удалось выделить память");
+      return EXIT_FAILURE;
+   }
+
+   // Открываем файл для чтения
+   fopen_s(&file, filename, "r");
+   if (!file) {
+      perror("Не удалось открыть файл");
+      free(min_lines);
+      return EXIT_FAILURE;
+   }
+
+   // Читаем строки из файла
+   for (i = 0; i < MAX_LINES; i++) {
+      if (fgets(lines[i], MAX_LINE_LENGTH, file) == NULL) {
+         fprintf(stderr, "Не удалось прочитать строку %d\n", i + 1);
+         fclose(file);
+         free(min_lines);
+         return EXIT_FAILURE;
+      }
+      // Удаляем символ новой строки в конце строки, если он есть
+      size_t len = strlen(lines[i]);
+      if (len > 0 && lines[i][len - 1] == '\n') {
+         lines[i][len - 1] = '\0';
+      }
+   }
+   fclose(file);
+
+   // Ищем взаимные индексы совпадений и минимальное значение
+   for (i = 0; i < MAX_LINES; i++) {
+      for (j = i + 1; j < MAX_LINES; j++) {
+         int index = mutual_index(lines[i], lines[j]);
+         if (index < min_index) {
+            min_index = index;
+            num_min_lines = 0;
+            min_lines[num_min_lines * 2] = i;
+            min_lines[num_min_lines * 2 + 1] = j;
+            num_min_lines++;
+         }
+         else if (index == min_index) {
+            if (num_min_lines < max_possible_pairs) {
+               min_lines[num_min_lines * 2] = i;
+               min_lines[num_min_lines * 2 + 1] = j;
+               num_min_lines++;
+            }
+         }
+      }
+   }
+
+   // Выводим номера строк с минимальным взаимным индексом совпадения
+   printf("Минимальный взаимный индекс совпадения: %d\n", min_index);
+   printf("Номера строк с минимальным индексом:\n");
+   for (i = 0; i < num_min_lines; i++) {
+      printf("Строки %d и %d\n", min_lines[i * 2] + 1, min_lines[i * 2 + 1] + 1);
+   }
+
+   // Освобождаем выделенную память
+   free(min_lines);
+
+   return EXIT_SUCCESS;
+}
