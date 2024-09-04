@@ -1,0 +1,107 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_SIZE 100
+
+void readMatrixFromFile(const char* filename, int*** matrix, int* n) {
+   FILE* file;
+   fopen_s(&file, filename, "r");
+   if (file == NULL) {
+      perror("Error opening file");
+      exit(EXIT_FAILURE);
+   }
+
+   fscanf_s(file, "%d", n);
+
+   // Выделение памяти для матрицы
+   *matrix = (int**)malloc(*n * sizeof(int*));
+   for (int i = 0; i < *n; i++) {
+      (*matrix)[i] = (int*)malloc(*n * sizeof(int));
+   }
+
+   for (int i = 0; i < *n; i++) {
+      for (int j = 0; j < *n; j++) {
+         fscanf_s(file, "%d", &((*matrix)[i][j]));
+      }
+   }
+
+   fclose(file);
+}
+
+void writeMatrixToFile(const char* filename, int** matrix, int n) {
+   FILE* file;
+   fopen_s(&file, filename, "w");
+   if (file == NULL) {
+      perror("Error opening file");
+      exit(EXIT_FAILURE);
+   }
+
+   fprintf(file, "%d\n", n);
+
+   for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+         fprintf(file, "%d ", matrix[i][j]);
+      }
+      fprintf(file, "\n");
+   }
+
+   fclose(file);
+}
+
+void printMatrix(int** matrix, int n) {
+   printf("Matrix (%d x %d):\n", n, n);
+   for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+         printf("%d ", matrix[i][j]);
+      }
+      printf("\n");
+   }
+}
+
+void sortArray(int arr[], int n, int ascending) {
+   for (int i = 0; i < n - 1; i++) {
+      int extremum_idx = i;
+      for (int j = i + 1; j < n; j++) {
+         if (ascending ? arr[j] < arr[extremum_idx] : arr[j] > arr[extremum_idx]) {
+            extremum_idx = j;
+         }
+      }
+
+      // Swap the found extremum element with the first unsorted element
+      int temp = arr[i];
+      arr[i] = arr[extremum_idx];
+      arr[extremum_idx] = temp;
+   }
+}
+
+void processMatrix(int** matrix, int n) {
+   for (int i = 0; i < n; i++) {
+      int diagonalElement = matrix[i][i];
+      int ascending = (diagonalElement % 2 == 0);  // Сортировка по возрастанию, если четное
+
+      sortArray(matrix[i], n, ascending);
+   }
+}
+
+void freeMatrix(int** matrix, int n) {
+   for (int i = 0; i < n; i++) {
+      free(matrix[i]);
+   }
+   free(matrix);
+}
+
+
+
+int main() {
+   int** matrix = NULL;
+   int n = 0;
+
+
+   readMatrixFromFile("matrix.txt", &matrix, &n);
+   printMatrix(matrix, n);
+   processMatrix(matrix, n);
+   printMatrix(matrix, n);
+   freeMatrix(matrix, n);
+
+   return 0;
+}
